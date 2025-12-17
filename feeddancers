@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feed the dancers</title>
+
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+      background: #f7f7f7;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #message {
+      position: absolute;
+      top: 24px;
+      font-size: 20px;
+      color: #111;
+      opacity: 0;
+      transition: opacity 0.4s;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    button {
+      position: absolute;
+      padding: 16px 26px;
+      font-size: 18px;
+      border-radius: 14px;
+      border: none;
+      background: #000;
+      color: white;
+      cursor: pointer;
+      touch-action: none;
+      text-align: center;
+      line-height: 1.3;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="message"></div>
+
+<button id="runaway">
+  накормить артистов<br>(feed dancers)
+</button>
+
+<script>
+  const button = document.getElementById("runaway");
+  const message = document.getElementById("message");
+
+  let attempts = 0;
+
+  const messages = [
+    "Артисты голодны 🍞",
+    "Артисты очень голодны 😭",
+    "Нет сил танцевать 🩰",
+    "Умирают ⚰️"
+  ];
+
+  /* позиционирование */
+  function centerButton() {
+    button.style.left =
+      (window.innerWidth - button.offsetWidth) / 2 + "px";
+    button.style.top =
+      (window.innerHeight - button.offsetHeight) / 2 + "px";
+  }
+
+  centerButton();
+  window.addEventListener("resize", centerButton);
+
+  function moveButton() {
+    const padding = 20;
+    const maxX = window.innerWidth - button.offsetWidth - padding;
+    const maxY = window.innerHeight - button.offsetHeight - padding;
+
+    button.style.left = Math.random() * maxX + "px";
+    button.style.top = Math.random() * maxY + "px";
+  }
+
+  /* грустный звук */
+  function sadSound() {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(220, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(
+      Math.max(80, 220 - attempts * 30),
+      ctx.currentTime + 0.4
+    );
+
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
+  }
+
+  function escape(e) {
+    e.preventDefault();
+    attempts++;
+
+    sadSound();
+    moveButton();
+
+    if (attempts <= messages.length) {
+      message.textContent = messages[attempts - 1];
+      message.style.opacity = 1;
+    }
+  }
+
+  button.addEventListener("mouseenter", escape);   // desktop
+  button.addEventListener("touchstart", escape);   // mobile
+  button.addEventListener("click", e => e.preventDefault()); // на всякий случай
+</script>
+
+</body>
+</html>
